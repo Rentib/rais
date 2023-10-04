@@ -43,13 +43,13 @@ install_nerd_fonts() {
   path="/home/$name/.local/share/fonts"
 
   for font in $@; do
-    curl -OL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/"$font.tar.xz"
-    mkdir -p "$path/$font"
-    tar -xf "$font.tar.xz" -C "$path/$font"
-    rm "$font.tar.xz"
+    sudo -u $user curl -OL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/"$font.tar.xz"
+    sudo -u $user mkdir -p "$path/$font"
+    sudo -u $user tar -xf "$font.tar.xz" -C "$path/$font"
+    sudo -u $user rm "$font.tar.xz"
   done
 
-  sudo -su "$name" fc-cache -fv >/dev/null 2>&1
+  sudo -u "$name" fc-cache -fv >/dev/null 2>&1
 }
 
 getuser() {
@@ -166,14 +166,13 @@ pkginstall \
   pipewire-pulse \
   lf ffmpegthumbnailer \
   fd ripgrep fzf tokei \
-  ttf-symbola \
   bluez bluez-utils \
   zip unzip \
   clang cmake gdb valgrind \
   openssh \
   github-cli \
   gtk2 gtk3 gtk4 \
-  thunar gcfs \
+  thunar gvfs \
   hacksaw shotgun \
   dialog \
   man-db man-pages \
@@ -181,15 +180,22 @@ pkginstall \
   vi neovim python-pynvim python-pip \
   wget \
   discord
+
 sudo -u "$name" systemctl --user enable mpd
+sudo -u "$name" systemctl --user enable pipewire
 
 echo "Installing AUR packages..."
 sudo -u "$name" $aurhelper -S --noconfirm brave-bin ueberzugpp napi-bash xbanish
 
 for repo in dwm st dmenu slstatus; do
   echo "Installing $repo..."
-  sudo -u "$name" git clone "https://github.com/Rentib/$repo.git" "/home/$name/.local/src/$repo"
-  sudo -u "$name" -D "/home/$name/.local/src/$repo" make clean install
+  sudo -u "$name" \
+    git -C "/home/$name/.local/src" \
+    clone --depth 1 --single-branch --no-tags -q \
+    "https://github.com/Rentib/$repo.git"
+  sudo -u "$name" \
+    make -C "/home/$name/.local/src/$repo" -j \
+    clean install >/dev/null 2>&1
 done
 
 rm -rf "/home/$name/.config/nvim"
