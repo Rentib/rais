@@ -181,8 +181,7 @@ pkginstall \
   wget \
   discord
 
-sudo -u "$name" systemctl --user enable mpd
-sudo -u "$name" systemctl --user enable pipewire
+sudo -u "$name" systemctl --user enable mpd pipewire pipewire-pulse
 
 echo "Installing AUR packages..."
 sudo -u "$name" $aurhelper -S --noconfirm brave-bin ueberzugpp napi-bash xbanish
@@ -198,11 +197,13 @@ for repo in dwm st dmenu slstatus; do
     clean install >/dev/null 2>&1
 done
 
-rm -rf "/home/$name/.config/nvim"
-sudo -u "$name" git clone "https://github.com/Rentib/nvim.git" "/home/$name/.config/nvim"
-
 putgitrepo "$dotfilesrepo" "/home/$name" "$repobranch"
 rm -rf "/home/$name/.git/" "/home/$name/README.md" "/home/$name/LICENSE"
+rm -rf "/home/$name/.config/nvim"
+sudo -u "$name" \
+  git -C "/home/$name/.config/" \
+  clone --depth 1 --single-branch --no-tags -q \
+  "https://github.com/Rentib/nvim.git"
 
 install_nerd_fonts Hack
 
